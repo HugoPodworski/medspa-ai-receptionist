@@ -4,6 +4,98 @@ This repository accompanies my YouTube walkthrough of building and deploying a v
 
 ---
 
+## Local Development (Run It On Your Machine)
+
+### Prerequisites
+- **Python**: 3.10–3.12
+- **uv**: Python package/deps manager
+- **ngrok**: To expose your local server to the internet
+- **Accounts/keys**: Daily API key, Twilio account + phone number, Deepgram, Cartesia, Cerebras, and Qdrant (optional for RAG)
+
+Install tools on macOS:
+```bash
+# uv
+brew install uv
+
+# ngrok
+brew install ngrok
+# or download from https://ngrok.com/download
+```
+
+### 1) Clone the repo
+```bash
+git clone https://github.com/HugoPodworski/medspa-ai-receptionist.git
+cd medspa-ai-receptionist
+```
+
+### 2) Create virtual environment and install deps
+```bash
+# Create venv (recommended)
+uv venv
+source .venv/bin/activate
+
+# Install dependencies from pyproject.toml/uv.lock
+uv sync
+```
+
+### 3) Configure environment variables
+```bash
+# Start from the template
+cp env.example .env
+# Open .env and fill in your own keys
+```
+Required values (see `env.example`):
+- DAILY_API_KEY (and optional DAILY_API_URL)
+- TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN
+- DEEPGRAM_API_KEY, CARTESIA_API_KEY, CEREBRAS_API_KEY
+- QDRANT_URL, QDRANT_API_KEY, RAG_COLLECTION_NAME (RAG optional; app degrades gracefully)
+- ENVIRONMENT=local (for local development)
+
+### 4) Run the server locally
+Pick one of the following:
+```bash
+# Easiest: run the script directly (reload via __main__)
+uv run server.py
+
+# Or run uvicorn explicitly
+uv run uvicorn server:app --host 0.0.0.0 --port 7860 --reload
+```
+Verify it’s up:
+```bash
+curl http://localhost:7860/health
+# => {"status":"healthy"}
+```
+
+### 5) Expose your server with ngrok
+```bash
+# Authenticate once (from your ngrok dashboard)
+ngrok config add-authtoken <YOUR_NGROK_AUTHTOKEN>
+
+# Start a tunnel to your local port
+ngrok http 7860
+```
+Copy the public URL shown by ngrok, e.g., `https://random-subdomain.ngrok.io`.
+
+### 6) Point Twilio to your local server
+In Twilio Console:
+1. Go to Phone Numbers → Manage → Active numbers → select your number
+2. Under Voice configuration, set:
+   - A Call Comes In: Webhook `https://<your-ngrok-domain>/call`
+   - HTTP Method: POST
+3. Save
+
+### 7) Test end-to-end locally
+- Call your Twilio phone number
+- You should hear: “Thank you for calling Thérapie Clinic, how can I help you today?”
+- Watch local logs in your terminal and ngrok console
+
+Troubleshooting tips:
+- If you see 403 errors from Qdrant or other services, double-check API keys in `.env`
+- If /health works locally but Twilio fails, ensure ngrok is running and the webhook URL is correct (`/call`, POST)
+- If you change `.env`, restart the server
+
+---
+
 # Complete Step-by-Step First Deployment to Fly.io
 
 ## Prerequisites
@@ -115,9 +207,9 @@ fly launch --no-deploy
 ```
 
 During launch:
-- **App name**: Choose something unique (e.g., `your-name-voice-bot`)
-- **Region**: Choose closest to your users (e.g., `iad` for US East)
-- **Don't deploy yet**: We need to set secrets first
+- App name: Choose something unique (e.g., `your-name-voice-bot`)
+- Region: Choose closest to your users (e.g., `iad` for US East)
+- Don't deploy yet: We need to set secrets first
 
 ## 3. Set Environment Secrets
 
@@ -143,9 +235,9 @@ fly secrets set \
 fly deploy --remote-only
 ```
 
-**After this first deploy:** to change CPUs/memory, update `fly.toml` and redeploy. No code changes needed for scaling.
+After this first deploy: to change CPUs/memory, update `fly.toml` and redeploy. No code changes needed for scaling.
 
-**What happens during deployment:**
+What happens during deployment:
 - Builds Docker image (takes ~5-10 minutes first time)
 - Pushes image to Fly registry
 - Creates and starts machines
@@ -197,10 +289,10 @@ fly machines list
 ## 7. Configure Twilio
 
 In Twilio Console:
-1. Go to **Phone Numbers** → **Manage** → **Active numbers**
+1. Go to Phone Numbers → Manage → Active numbers
 2. Click your phone number
-3. Set **Webhook URL**: `https://your-app-name.fly.dev/call`
-4. Set **HTTP method**: `POST`
+3. Set Webhook URL: `https://your-app-name.fly.dev/call`
+4. Set HTTP method: `POST`
 5. Save configuration
 
 ## 8. Test End-to-End
@@ -245,12 +337,12 @@ fly secrets list
 fly secrets set NEW_API_KEY=value
 ```
 
-## Common Gotchas We Encountered:
+## Common Gotchas We Encountered
 
-1. **Image size**: Started at 9GB, fixed with CPU-only PyTorch
-2. **Memory**: Needed 2GB+ for sentence-transformers
-3. **Qdrant auth**: 403 errors with wrong API key
-4. **Health checks**: Needed longer grace period for startup
-5. **Auto-stop**: Normal behavior, saves money
+1. Image size: Started at 9GB, fixed with CPU-only PyTorch
+2. Memory: Needed 2GB+ for sentence-transformers
+3. Qdrant auth: 403 errors with wrong API key
+4. Health checks: Needed longer grace period for startup
+5. Auto-stop: Normal behavior, saves money
 
 Your app is now deployed and will auto-scale based on call volume! 🚀
