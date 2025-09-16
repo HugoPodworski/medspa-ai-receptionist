@@ -1,6 +1,6 @@
 # Medspa AI Receptionist (YouTube Edition)
 
-This repository accompanies my YouTube walkthrough of building and deploying a voice AI receptionist. It’s optimized for viewers following along step-by-step. After the first deployment, any scaling or resource changes should be done by editing `fly.toml` and redeploying—no code changes needed.
+This repo is the resource for my YouTube video on building and deploying a Med Spa voice AI receptionist.
 
 ---
 
