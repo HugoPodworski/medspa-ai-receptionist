@@ -98,7 +98,7 @@ async def run_bot(
         instructions_prompt = "1. Find out what the patient needs help with."
     else:
         patient_context = "No patient record found. Collect phone number, name, and email before proceeding."
-        instructions_prompt = "1. Find out what the patient needs help with.\2. If they are looking to do something that needs a patient record, create one by gathering the phone number, name, and email."
+        instructions_prompt = "1. Find out what the patient needs help with.\n2. If they are looking to do something that needs a patient record, create one by gathering the phone number, name, and email."
 
     system_prompt_text = base_system_prompt.format(current_date_and_time=current_date_and_time, instructions_prompt=instructions_prompt, patient_context=patient_context)
 
