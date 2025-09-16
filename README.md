@@ -1,4 +1,4 @@
-# Medspa AI Receptionist (YouTube Edition)
+# Medspa AI Receptionist
 
 This repo is the resource for my YouTube video on building and deploying a Med Spa voice AI receptionist.
 
