@@ -1,0 +1,33 @@
+# fly.toml app configuration file generated for medspa-voiceai-yt on 2025-09-11T17:13:48+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'yourmedspaname'
+primary_region = 'iad'
+
+[build]
+
+[env]
+  FLY_APP_NAME = 'yourmedspaname'
+
+[http_service]
+  internal_port = 7860
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "15s"
+    method = "get"
+    path = "/health"
+    protocol = "http"
+    timeout = "10s"
+
+[[vm]]
+  memory = '2048'
+  cpu_kind = 'shared'
+  cpus = 1

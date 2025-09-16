@@ -1,0 +1,18 @@
+# Exclude unwanted files from this repo
+web.py
+pcc-deploy.toml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv
+.env
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
